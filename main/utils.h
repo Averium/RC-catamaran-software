@@ -23,6 +23,8 @@
 
 #define UPDATE_INTERVAL_MS 10u  // 10 ms update interval
 
+#define TAG "ESP: "
+
 typedef enum { INCREASE, DECREASE } Direction;
 
 #endif
