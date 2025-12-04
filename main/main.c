@@ -5,10 +5,14 @@
 #include "driver/ledc.h"
 #include "esp_log.h"
 
+#include "application_state_machine.h"
+
 
 static float pulse_us = 0.0f;
 static Direction dir = INCREASE;
-static float step_us;  // computed from ramp duration
+static float step_us;
+
+static StateMachine state_machine;
 
 
 void pwm_init(void) {
@@ -106,6 +110,14 @@ void esc_task(void* pv) {
 
 
 void app_main(void) {
-    pwm_init();
-    xTaskCreate(esc_task, "esc_task", 4096, NULL, 5, NULL);
+    StateMachine_init(&state_machine);
+
+    // pwm_init();
+    // xTaskCreate(esc_task, "esc_task", 4096, NULL, 5, NULL);
+
+    while (true) {
+        StateMachine_update(&state_machine, UPDATE_INTERVAL_MS);
+        StateMachine_print_state(&state_machine);
+        vTaskDelay(pdMS_TO_TICKS(UPDATE_INTERVAL_MS));
+    }
 }
