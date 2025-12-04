@@ -1,5 +1,8 @@
 idf_component_register(
-    SRCS "hello_world_main.c" INCLUDE_DIRS ""
+    SRCS
+        "main.c"
+        "app_init.c"
+        "app_state.c"
+    
+    INCLUDE_DIRS "."
 )
-
-add_compile_options(-Wno-error=format)
