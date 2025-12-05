@@ -3,6 +3,7 @@
 
 
 #include "esp_log.h"
+#include "application_types.h"
 
 
 typedef enum {
@@ -58,7 +59,7 @@ void StateMachine_set_state(
     TransitionsFunction transitions
 );
 
-void StateMachine_update(StateMachine* state_machine, const float dt);
+void StateMachine_update(StateMachine* state_machine, const float32 dt);
 
 inline State* StateMachine_get_state(StateMachine* state_machine) {
     const StateType index = state_machine->current_state;

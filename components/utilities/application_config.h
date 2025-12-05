@@ -14,7 +14,7 @@
 #define PULSE_MIN_US    1300.0f
 #define PULSE_MAX_US    1800.0f
 
-#define UPDATE_INTERVAL_MS 10u
+#define REFRESH_PERIOD_MS 10u
 #define APPLICATION_TAG "APPLICATION: "
 
 #define PWM_PERIOD_US   (1000000.0f / (float)PWM_FREQ_HZ)

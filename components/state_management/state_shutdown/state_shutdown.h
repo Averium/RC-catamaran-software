@@ -6,7 +6,7 @@
 
 void on_entry_shutdown(void);
 void on_exit_shutdown(void);
-void operation_shutdown(const float dt);
+void operation_shutdown(const float32 dt);
 StateType transitions_shutdown(void);
 
 

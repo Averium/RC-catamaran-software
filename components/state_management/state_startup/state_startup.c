@@ -7,11 +7,11 @@ void on_entry_startup(void) {}
 void on_exit_startup(void) {}
 
 
-void operation_startup(const float dt) {}
+void operation_startup(const float32 dt) {}
 
 
 StateType transitions_startup(void) {
-    static unsigned int counter = 0u;
+    static uint8 counter = 0u;
 
     if (counter > 200u) { return STATE_OPERATION; }
     else { counter++; }

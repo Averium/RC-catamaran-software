@@ -1,9 +1,11 @@
 idf_component_register(
     SRCS
-        "motor_driver.c"
+        "bldc_driver/bldc_driver.c"
+        "pwm/pwm.c"
 
     INCLUDE_DIRS
-        "include"
+        "bldc_driver"
+        "pwm"
 
     REQUIRES
         utilities

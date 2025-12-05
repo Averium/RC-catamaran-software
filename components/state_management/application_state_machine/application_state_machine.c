@@ -1,5 +1,5 @@
 #include "application_state_machine.h"
-
+#include "application_types.h"
 
 #include "state_startup.h"
 #include "state_shutdown.h"
@@ -42,7 +42,7 @@ void StateMachine_set_state(
 }
 
 
-void StateMachine_update(StateMachine* state_machine, const float dt) {
+void StateMachine_update(StateMachine* state_machine, const float32 dt) {
 
     State* state = StateMachine_get_state(state_machine);
 

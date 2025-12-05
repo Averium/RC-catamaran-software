@@ -6,7 +6,7 @@
 
 void on_entry_operation(void);
 void on_exit_operation(void);
-void operation_operation(const float dt);
+void operation_operation(const float32 dt);
 StateType transitions_operation(void);
 
 
