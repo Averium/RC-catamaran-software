@@ -2,7 +2,6 @@
 #define APPLICATION_STATE_MACHINE_H
 
 
-//#include "application_types.h"
 #include "esp_log.h"
 
 
@@ -43,6 +42,9 @@ typedef struct {
     StateType current_state;
     State state_table[N_STATES];
 } StateMachine;
+
+
+extern StateMachine state_machine;
 
 
 void StateMachine_init(StateMachine* state_machine);

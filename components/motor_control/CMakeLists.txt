@@ -1,9 +1,11 @@
 idf_component_register(
     SRCS
-        "esc_driver.c"
-        "motor_control.c"
-        "pwm_output.c"
+        "motor_driver.c"
 
     INCLUDE_DIRS
-        "."
+        "include"
+
+    REQUIRES
+        utilities
+        driver
 )

@@ -1,8 +1,6 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef APPLICATION_CONFIG_H
+#define APPLICATION_CONFIG_H
 
-#include <stdint.h>
-#include <stdbool.h>
 
 // ---------- PWM configuration ----------
 #define PWM_PIN         GPIO_NUM_4
@@ -16,15 +14,11 @@
 #define PULSE_MIN_US    1300.0f
 #define PULSE_MAX_US    1800.0f
 
-// ---------- Derived values ----------
+#define UPDATE_INTERVAL_MS 10u
+#define APPLICATION_TAG "APPLICATION: "
+
 #define PWM_PERIOD_US   (1000000.0f / (float)PWM_FREQ_HZ)
 #define DUTY_MAX        ((1U << PWM_RESOLUTION) - 1U)
-#define DUTY_FROM_PULSE_US(p) ((uint32_t)(((p) * DUTY_MAX) / PWM_PERIOD_US))
 
-#define UPDATE_INTERVAL_MS 10u  // 10 ms update interval
-
-#define TAG "ESP: "
-
-typedef enum { INCREASE, DECREASE } Direction;
 
 #endif

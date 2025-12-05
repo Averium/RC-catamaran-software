@@ -6,6 +6,9 @@
 #include "state_operation.h"
 
 
+StateMachine state_machine;
+
+
 void StateMachine_init(StateMachine* state_machine) {
 
     StateMachine_set_state(

@@ -2,7 +2,10 @@
 #define APPLICATION_TYPES_H
 
 
-#include <stdbool.h>
+typedef enum {
+    INCREASE,
+    DECREASE
+} Direction;
 
 
 #endif
