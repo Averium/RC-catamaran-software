@@ -7,62 +7,58 @@
 #include "bldc_driver.h"
 #include "application_config.h"
 #include "application_types.h"
+#include "application_utils.h"
 
 
-float32 pulse_us = 0.0f;
-float32 step_us = 0.0f;
-Direction dir = INCREASE;
+void bldc_init(BldcDriver* object, gpio_num_t gpio_pin, ledc_channel_t pwm_channel) {
+    static bool bldc_timer_initialized = false;
 
+    if (!bldc_timer_initialized) {
+        pwm_timer_config(BLDC_PWM_TIMER, BLDC_PWM_RESOLUTION, BLDC_PWM_FREQ_HZ);
+        bldc_timer_initialized = true;
+    }
 
-uint32 pulse_to_duty(const float32 pulse) {
-    /* convert float µs → LEDC duty count */
-    return (uint32)(pulse * DUTY_MAX / PWM_PERIOD_US);
+    pwm_config(gpio_pin, BLDC_PWM_TIMER, pwm_channel);
+
+    object->pwm_channel = pwm_channel;
+    object->throttle = 0.0f;
+    object->throttle_limit = (Limitation) { 0.0f, 1.0f };
+    object->throttle_rate = BLDC_THROTTLE_RATE_LIMIT;
 }
 
 
-void esc_update(void) {
-
-    if (dir == INCREASE) {
-        pulse_us += step_us;
-    } else {
-        pulse_us -= step_us;
-    }
-
-    if (pulse_us >= PULSE_MAX_US) {
-        pulse_us = PULSE_MAX_US;
-        dir = DECREASE;
-    } else if (pulse_us <= PULSE_MIN_US) {
-        pulse_us = PULSE_MIN_US;
-        dir = INCREASE;
-    }
-
-    uint32 duty_cycle = pulse_to_duty(pulse_us);
-    pwm_update(duty_cycle);
-
-}
-
-
-void esc_init_sequence(void) {
-    const float32 range = PULSE_MAX_US - PULSE_MIN_US;
-    float32 norm = 0.0f;
+void bldc_calibration_sequence(BldcDriver* object, float32 dt) {
 
     ESP_LOGI(APPLICATION_TAG, "Starting ESP init sequence...");
 
-    for (float32 scale = -1.0f; scale < 2.0f; scale = scale + 0.01f) {  // 2 sec at 10ms per update
-        
-        if (scale < 0.0f) {
-            norm = 0.0f;
-        } else if (scale > 1.0f) {
-            norm = 1.0f;
-        } else {
-            norm = scale;
-            ESP_LOGI(APPLICATION_TAG, "Calibration progress: %.1f", norm * 100.0f);
-        }
+    float32 time = BLDC_CALIBRATION_DELAY_S * 2.0f + BLDC_CALIBRATION_TIME_S;
+    float32 step = dt / time;
 
-        uint32 duty = pulse_to_duty(PULSE_MAX_US - range * norm);
+    for (float32 progress = 0.0f; progress < 1.0f; progress += step) {
 
-        ledc_set_duty(PWM_MODE, PWM_CHANNEL, duty);
-        ledc_update_duty(PWM_MODE, PWM_CHANNEL);
+        float32 throttle = progress * time - BLDC_CALIBRATION_DELAY_S;
+        bldc_set_throttle(object, throttle);
+
+        ESP_LOGI(APPLICATION_TAG, "Calibration progress: %.1f", progress);
         vTaskDelay(pdMS_TO_TICKS(REFRESH_PERIOD_MS));
     }
+}
+
+
+void bldc_set_throttle(BldcDriver* object, float32 throttle) {
+    object->throttle_target = saturate(throttle, object->throttle_limit);
+}
+
+
+void bldc_update(BldcDriver* object, float32 dt) {
+
+    float32 throttle_error = object->throttle_target - object->throttle;
+    float32 thorttle_step = saturate(throttle_error, object->throttle_rate);
+
+    object->throttle += thorttle_step * dt;
+
+    float32 pulse_length_us = object->throttle * (PULSE_MAX_US - PULSE_MIN_US) + PULSE_MIN_US;
+    uint32 duty_cycle = (pulse_length_us * BLDC_DUTY_MAX / BLDC_PWM_PERIOD_US);
+
+    pwm_update(object->pwm_channel, duty_cycle);
 }

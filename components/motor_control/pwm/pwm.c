@@ -7,31 +7,41 @@
 #include "application_config.h"
 
 
-void pwm_init(void) {
+void pwm_timer_config(ledc_channel_t timer_id, uint32 resolution, uint32 frequency) {
+
     ledc_timer_config_t timer_config = {
-        .speed_mode = PWM_MODE,
-        .timer_num = PWM_TIMER,
-        .duty_resolution = PWM_RESOLUTION,
-        .freq_hz = PWM_FREQ_HZ,
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .timer_num = timer_id,
+        .duty_resolution = resolution,
+        .freq_hz = frequency,
         .clk_cfg = LEDC_AUTO_CLK
     };
+
     ESP_ERROR_CHECK(ledc_timer_config(&timer_config));
-
-    ledc_channel_config_t channel_config = {
-        .gpio_num = PWM_PIN,
-        .speed_mode = PWM_MODE,
-        .channel = PWM_CHANNEL,
-        .timer_sel = PWM_TIMER,
-        .duty = 0,
-        .hpoint = 0
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&channel_config));
-
-    ESP_LOGI(APPLICATION_TAG, "PWM initialized on GPIO %d", PWM_PIN);
 }
 
 
-void pwm_update(const uint32 duty_cycle) {
-    ledc_set_duty(PWM_MODE, PWM_CHANNEL, duty_cycle);
-    ledc_update_duty(PWM_MODE, PWM_CHANNEL);
+void pwm_config(
+    gpio_num_t gpio_number,
+    ledc_timer_t timer_id,
+    ledc_channel_t channel
+) {
+
+    ledc_channel_config_t channel_config = {
+        .gpio_num = gpio_number,
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .channel = channel,
+        .timer_sel = timer_id,
+        .duty = 0,
+        .hpoint = 0
+    };
+
+    ESP_ERROR_CHECK(ledc_channel_config(&channel_config));
+    ESP_LOGI(APPLICATION_TAG, "PWM initialized on GPIO %d", gpio_number);
+}
+
+
+void pwm_update(ledc_channel_t channel, uint32 duty_cycle) {
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, channel, duty_cycle);
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, channel);
 }
