@@ -3,6 +3,6 @@ idf_component_register(
         "main.c"
     REQUIRES
         utilities
-        motor_control
+        bldc_driver
         state_management
 )

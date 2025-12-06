@@ -11,7 +11,6 @@
 #define PULSE_MAX_US    1800.0f
 
 #define REFRESH_PERIOD_MS 10u
-#define APPLICATION_TAG "APPLICATION: "
 
 
 #endif

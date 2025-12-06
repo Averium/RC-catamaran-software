@@ -7,6 +7,9 @@
 #include "application_config.h"
 
 
+static const char* TAG = "PWM";
+
+
 void pwm_timer_config(ledc_channel_t timer_id, uint32 resolution, uint32 frequency) {
 
     ledc_timer_config_t timer_config = {
@@ -37,7 +40,7 @@ void pwm_config(
     };
 
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config));
-    ESP_LOGI(APPLICATION_TAG, "PWM initialized on GPIO %d", gpio_number);
+    ESP_LOGI(TAG, "PWM initialized on GPIO %d", gpio_number);
 }
 
 
