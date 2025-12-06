@@ -21,9 +21,17 @@ inline void saturate_in_place(float32* value, const Limitation limit) {
 
 
 inline float32 saturate(float32 value, const Limitation limit) {
-    if (value < limit.min) { return limit.min; }
-    if (value > limit.max) { return limit.max; }
+    if (value <= limit.min) { return limit.min; }
+    if (value >= limit.max) { return limit.max; }
     return value;
+}
+
+
+inline ApplicationErrorType application_object_check(const void* object) {
+    if (object == NULL) {
+        return ERROR_INVALID_OBJECT_POINTER;
+    }
+    return ERROR_OK;
 }
 
 

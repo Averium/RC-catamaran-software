@@ -25,7 +25,7 @@ struct BldcDriver {
     ledc_channel_t pwm_channel;
 
     bool is_initialized;
-    bool is_calibrated;
+    ApplicationCalibrationState calibration_state;
 
 };
 
@@ -42,13 +42,14 @@ BldcDriver* bldc_new(gpio_num_t gpio_pin, ledc_channel_t pwm_channel) {
     object->throttle_rate_s = BLDC_THROTTLE_RATE_LIMIT_S;
 
     object->is_initialized = false;
-    object->is_calibrated = false;
+    object->calibration_state = CALIBRATION_NOT_STARTED;
 
     return object;
 }
 
 
 void bldc_init(BldcDriver* object) {
+
     static bool bldc_timer_initialized = false;
 
     if (false == bldc_timer_initialized) {
@@ -71,36 +72,54 @@ void bldc_calibration_sequence(BldcDriver* object, float32 dt_ms) {
         bldc_init(object);
     }
 
-    if (false == object->is_calibrated) {
+    if (object->calibration_state == CALIBRATION_FINISHED) {
+        return;
+    }
 
-        ESP_LOGI(TAG, "Starting ESP calibration sequence...");
+    ESP_LOGI(TAG, "Starting ESP calibration sequence...");
+    object->calibration_state = CALIBRATION_ONGOING;
 
-        float32 calibration_time_s = BLDC_CALIBRATION_DELAY_S * 2.0f + BLDC_CALIBRATION_TIME_S;
-        float32 step = dt_ms / (calibration_time_s * S_TO_MS);
+    bldc_immediate_throttle(object, 1.0f);
 
-        for (float32 progress = 0.0f; progress < 1.0f; progress += step) {
+    float32 calibration_time_s = BLDC_CALIBRATION_DELAY_S * 2.0f + BLDC_CALIBRATION_TIME_S;
+    float32 step = dt_ms / (calibration_time_s * S_TO_MS);
 
-            float32 throttle = progress * calibration_time_s - BLDC_CALIBRATION_DELAY_S;
-            bldc_set_throttle(object, throttle);
+    for (float32 progress = 0.0f; progress < 1.0f; progress += step) {
 
-            ESP_LOGI(TAG, "Calibration progress: %.1f%c", progress * 100.0f, '%');
-            vTaskDelay(pdMS_TO_TICKS(REFRESH_PERIOD_MS));
-        }
+        float32 throttle = (1.0f - progress) * calibration_time_s - BLDC_CALIBRATION_DELAY_S;
+        bldc_immediate_throttle(object, throttle);
+        bldc_update(object, REFRESH_PERIOD_MS);
+
+        ESP_LOGI(TAG, "Calibration progress: %.1f%c", progress * 100.0f, '%');
+        vTaskDelay(pdMS_TO_TICKS(REFRESH_PERIOD_MS));
     }
 
     ESP_LOGI(TAG, "ESP calibration finished.");
 
-    object->is_calibrated = true;
+    object->calibration_state = CALIBRATION_FINISHED;
 }
 
 
 void bldc_set_throttle(BldcDriver* object, float32 throttle) {
-    object->throttle_target = 0.0f;
-
-    if (true == (object->is_initialized && object->is_calibrated)) {
-        object->throttle_target = saturate(throttle, object->throttle_limit);
+    if (false == (object->is_initialized && object->calibration_state == CALIBRATION_FINISHED)) {
+        object->throttle_target = 0.0f;
+        return;
     }
+    object->throttle_target = saturate(throttle, object->throttle_limit);
+}
 
+
+void bldc_immediate_throttle(BldcDriver* object, float32 throttle) {
+    
+    if (false == (object->is_initialized && object->calibration_state <= CALIBRATION_ONGOING )) {
+        object->throttle = 0.0f;
+        object->throttle_target = 0.0f;
+        return;
+    }
+    
+    float32 saturated_throttle = saturate(throttle, object->throttle_limit); 
+    object->throttle = saturated_throttle;
+    object->throttle_target = saturated_throttle;
 }
 
 
@@ -113,7 +132,7 @@ void bldc_update(BldcDriver* object, float32 dt_ms) {
         return;
     }
 
-    if (true == object->is_calibrated) {
+    if (object->calibration_state <= CALIBRATION_ONGOING) {
         float32 throttle_error = object->throttle_target - object->throttle;
         float32 thorttle_step = saturate(throttle_error, object->throttle_rate_s);
 
@@ -121,6 +140,8 @@ void bldc_update(BldcDriver* object, float32 dt_ms) {
 
         float32 pulse_length_us = object->throttle * (PULSE_MAX_US - PULSE_MIN_US) + PULSE_MIN_US;
         duty_cycle = (pulse_length_us * BLDC_DUTY_MAX / BLDC_PWM_PERIOD_US);
+
+        ESP_LOGI(TAG, "Pulse length [us]: %.2f", pulse_length_us);
     }
 
     pwm_update(object->pwm_channel, duty_cycle);

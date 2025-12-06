@@ -15,10 +15,10 @@
 #define BLDC_PWM_FREQ_HZ    50u
 #define BLDC_PWM_RESOLUTION LEDC_TIMER_12_BIT
 
-#define BLDC_CALIBRATION_DELAY_S 0.5f
+#define BLDC_CALIBRATION_DELAY_S 1.0f
 #define BLDC_CALIBRATION_TIME_S 1.0f
 
-#define BLDC_THROTTLE_RATE_LIMIT_S ((Limitation){ 0.0f, 1.0f })
+#define BLDC_THROTTLE_RATE_LIMIT_S ((Limitation){ -1.0f, 1.0f })
 
 #define BLDC_PWM_PERIOD_US   (1000000.0f / (float32)(BLDC_PWM_FREQ_HZ))
 #define BLDC_DUTY_MAX        ((1u << BLDC_PWM_RESOLUTION) - 1u)
@@ -30,7 +30,10 @@ typedef struct BldcDriver BldcDriver;
 BldcDriver* bldc_new(gpio_num_t gpio_pin, ledc_channel_t pwm_channel);
 void bldc_init(BldcDriver* object);
 void bldc_calibration_sequence(BldcDriver* object, float32 dt);
+
 void bldc_set_throttle(BldcDriver* object, float32 throttle);
+void bldc_immediate_throttle(BldcDriver* object, float32 throttle);
+
 void bldc_update(BldcDriver* object, float32 dt);
 
 

@@ -26,21 +26,21 @@ void esc_task(void* pv) {
 
     while (true) {
 
+        throttle = throttle + sweep_step * direction;
+
         if (throttle < 0.0f) {
             throttle = 0.0f;
             direction = -direction;
         }
-
-        if (throttle > 1.0f) {
+        else if (throttle >= 1.0f) {
             throttle = 1.0f;
             direction = -direction;
         }
 
-        throttle = throttle + sweep_step * direction;
         bldc_set_throttle(bldc, throttle);
-
-        ESP_LOGI(TAG, "Throttle set to: %.2f%c", throttle * 100.0f, '%');
+        //ESP_LOGI(TAG, "Throttle set to: %.2f%c", throttle * 100.0f, '%');
         
+        bldc_update(bldc, REFRESH_PERIOD_MS);
         vTaskDelay(pdMS_TO_TICKS(REFRESH_PERIOD_MS));
 
     }

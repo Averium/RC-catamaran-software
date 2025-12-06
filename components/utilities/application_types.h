@@ -12,9 +12,21 @@ typedef float float32;
 
 
 typedef enum {
-    INCREASE,
-    DECREASE
-} Direction;
+    ERROR_OK,
+    ERROR_INVALID_OBJECT_POINTER,
+    ERROR_FAILED_ESP_CALL,
+    ERROR_OUT_OF_RANGE_FUNCTION_ARGUMENT,
+    ERROR_INVALID_FUNCTION_ARGUMENT,
+    N_ERRORS,
+} ApplicationErrorType;
+
+
+typedef enum {
+    CALIBRATION_FINISHED,
+    CALIBRATION_ONGOING,
+    CALIBRATION_NOT_STARTED,
+    CALIBRATION_FAILED,
+} ApplicationCalibrationState;
 
 
 typedef struct {

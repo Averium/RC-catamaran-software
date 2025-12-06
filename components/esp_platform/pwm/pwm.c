@@ -10,7 +10,7 @@
 static const char* TAG = "PWM";
 
 
-void pwm_timer_config(ledc_channel_t timer_id, uint32 resolution, uint32 frequency) {
+void pwm_timer_config(ledc_timer_t timer_id, ledc_timer_bit_t resolution, uint32 frequency) {
 
     ledc_timer_config_t timer_config = {
         .speed_mode = LEDC_HIGH_SPEED_MODE,
@@ -36,7 +36,8 @@ void pwm_config(
         .channel = channel,
         .timer_sel = timer_id,
         .duty = 0,
-        .hpoint = 0
+        .hpoint = 0,
+        .intr_type = LEDC_INTR_DISABLE
     };
 
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config));
